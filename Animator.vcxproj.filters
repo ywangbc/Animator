@@ -170,9 +170,6 @@
     <ClInclude Include="mat.h">
       <Filter>Header Files\Math.</Filter>
     </ClInclude>
-    <ClInclude Include="vec.h">
-      <Filter>Header Files\Math.</Filter>
-    </ClInclude>
     <ClInclude Include="bsplinecurveevaluator.h">
       <Filter>Header Files\Curves.</Filter>
     </ClInclude>
@@ -184,6 +181,9 @@
     </ClInclude>
     <ClInclude Include="c2interpolatingevaluator.h">
       <Filter>Header Files\Curves.</Filter>
+    </ClInclude>
+    <ClInclude Include="vec.h">
+      <Filter>Header Files\Math.</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
