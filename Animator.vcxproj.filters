@@ -99,17 +99,14 @@
     <ClCompile Include="rulerwindow.cpp">
       <Filter>Source Files\UI</Filter>
     </ClCompile>
-    <ClCompile Include="beziercurveevaluaror.cpp">
-      <Filter>Source Files\Curves</Filter>
-    </ClCompile>
-    <ClCompile Include="bsplinecurveevaluator.cpp">
-      <Filter>Source Files\Curves</Filter>
-    </ClCompile>
-    <ClCompile Include="catmullromevaluator.cpp">
-      <Filter>Source Files\Curves</Filter>
-    </ClCompile>
     <ClCompile Include="c2interpolatingevaluator.cpp">
       <Filter>Source Files\Curves</Filter>
+    </ClCompile>
+    <ClCompile Include="sabermodel.cpp">
+      <Filter>Source Files\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="saber.cpp">
+      <Filter>Source Files\Model</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -184,6 +181,9 @@
     </ClInclude>
     <ClInclude Include="c2interpolatingevaluator.h">
       <Filter>Header Files\Curves.</Filter>
+    </ClInclude>
+    <ClInclude Include="sabermodel.h">
+      <Filter>Header Files\Model.</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

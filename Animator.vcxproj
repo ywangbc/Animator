@@ -46,6 +46,9 @@
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\Debug\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <EmbedManifest>false</EmbedManifest>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Midl>
       <TypeLibraryName>.\Release/Animator.tlb</TypeLibraryName>
@@ -135,10 +138,7 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="beziercurveevaluaror.cpp" />
-    <ClCompile Include="bsplinecurveevaluator.cpp" />
     <ClCompile Include="c2interpolatingevaluator.cpp" />
-    <ClCompile Include="catmullromevaluator.cpp" />
     <ClCompile Include="curve.cpp">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -253,6 +253,8 @@
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <ClCompile Include="saber.cpp" />
+    <ClCompile Include="sabermodel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="beziercurveevaluator.h" />
@@ -278,6 +280,7 @@
     <ClInclude Include="rect.h" />
     <ClInclude Include="rulerwindow.h" />
     <ClInclude Include="mat.h" />
+    <ClInclude Include="sabermodel.h" />
     <ClInclude Include="vec.h" />
   </ItemGroup>
   <ItemGroup>
