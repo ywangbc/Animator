@@ -84,7 +84,6 @@ private:
 	int primitiveType;
 	int swordType;
 	int headType;
-	int haveTorus;
 	GLdouble xAngle, yAngle, zAngle, startPosX, startPosY, startPosZ, xScale, yScale, zScale;
 	GLdouble upperScale,middleScale,middleRatio;
 	GLdouble colorRed, colorGreen, colorBlue;
@@ -104,7 +103,6 @@ public:
 	void setColorAlpha(GLdouble r, GLdouble g, GLdouble b,GLdouble alpha);
 	void setSwordType(int ty);
 	void setHeadType(int ty);
-	void setTorus(int t);
 	void setTrans(GLdouble X, GLdouble Y, GLdouble Z);
 	void cylinderScale(GLdouble theUpperScale, GLdouble theMiddleScale, GLdouble theMiddleRatio);
 	void setStartAndEndAngle(GLdouble theStartAngle, GLdouble theEndAngle);
@@ -138,7 +136,6 @@ public:
 	void RotateRightLowerArm(GLdouble X, GLdouble Y, GLdouble Z, char theRotateOrder[] = "xyz");
 	void RotateExcalibur(GLdouble X, GLdouble Y, GLdouble Z, char theRotateOrder[] = "xyz");
 	void setExcaliburTransparency(GLdouble alpha);
-	void setComplexity(int comp);
 private:
 	ModelNode *treeRoot;
 	ModelNode upperTorso, lowerTorso, leftUpperArm, leftLowerArm, rightUpperArm, rightLowerArm;

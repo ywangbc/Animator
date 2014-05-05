@@ -772,7 +772,7 @@ void drawBlade(int swordType){
 	drawTriangle(8.0, 18.0, -1.0, 13.5, 0.0, 0.0, 8.0, 0.0, -1.0);
 }
 
-void drawFoot(int t){
+void drawFoot(){
 	glPushMatrix();
 	glScaled(1.0, 1.5, 1.0);
 	drawPartialCylinder(1.5, 0.4, 0, 0, 180);
@@ -782,13 +782,6 @@ void drawFoot(int t){
 	glRotated(-90.0, 1.0, 0.0, 0.0);
 	drawTorso(1.5, 0.52, 0.35, 0.4, 0.4);
 	glPopMatrix();
-	if (t){
-		glPushMatrix();
-		glTranslated(0.0, 0.4, -0.17);
-		glRotated(-30.0, 1.0, 0.0, 0.0);
-		drawTorus(0.5, 0.2);
-		glPopMatrix();
-	}
 }
 
 void drawEye(int li,int ty){
@@ -1136,9 +1129,6 @@ void ModelNode::setHeadType(int ty){
 	headType = ty;
 }
 
-void ModelNode::setTorus(int t){
-	haveTorus = t;
-}
 
 void ModelNode::setStartAndEndAngle(GLdouble theStartAngle, GLdouble theEndAngle){
 	startAngle = theStartAngle;
@@ -1233,7 +1223,7 @@ void ModelNode::Render(){
 	case SHAPE_FOOT:
 		glTranslated(transX, transY, transZ);
 		glScaled(xScale, yScale, zScale);
-		drawFoot(haveTorus);
+		drawFoot();
 		break;
 	case SHAPE_HEAD:
 		glTranslated(transX, transY, transZ);
@@ -1813,18 +1803,6 @@ void SaberModel::ChooseCostume(int cost){
 	}
 }
 
-void SaberModel::setComplexity(int comp){
-	if (comp) {
-		head.enableNode();
-		leftFoot.setTorus(1);
-		rightFoot.setTorus(1);
-	}
-	else {
-		head.disableNode();
-		rightFoot.setTorus(0);
-		leftFoot.setTorus(0);
-	}
-}
 
 void SaberModel::LocateBody(GLdouble xPos, GLdouble yPos, GLdouble zPos, GLdouble rotateAngle){
 	upperTorso.setStartPos(xPos, yPos, zPos);
