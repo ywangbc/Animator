@@ -6,6 +6,7 @@ void LinearCurveEvaluator::evaluateCurve(const std::vector<Point>& ptvCtrlPts,
 										 const float& fAniLength, 
 										 const bool& bWrap) const
 {
+
 	int iCtrlPtCount = ptvCtrlPts.size();
 
 	ptvEvaluatedCurvePts.assign(ptvCtrlPts.begin(), ptvCtrlPts.end());
