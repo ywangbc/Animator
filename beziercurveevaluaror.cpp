@@ -33,15 +33,12 @@ void BezierCurveEvaluator::displayBezier(const Point v0, const Point v1, const P
 		{
 			EvaluatedPoints.insert(++EvaluatedPoints.begin(), v0New);
 			EvaluatedPoints.insert(++EvaluatedPoints.begin(), v3New);
-		}
-	
+		}	
 		else
 		{
 			EvaluatedPoints.push_back(v0New);
 			EvaluatedPoints.push_back(v3New);
-		}
-
-		
+		}		
 	}
 	else
 	{

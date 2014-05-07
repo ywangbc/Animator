@@ -4,7 +4,7 @@
 #pragma warning(disable : 4786)  
 
 const int STEPLENGTH = 3;
-const float FLATEPSILON = 0.00001;
+const float FLATEPSILON = 0.0001;
 
 #include "CurveEvaluator.h"
 
