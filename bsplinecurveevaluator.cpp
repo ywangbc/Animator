@@ -39,11 +39,15 @@ void displayBezierLocal(const Point v0, const Point v1, const Point v2, const Po
 	{
 		Point v0New = v0;
 		Point v3New = v3;
-		while (v0New.x > animateLength)
+		if (v0New.x > 2 * animateLength || v3New.x > 2 * animateLength)
+		{
+			return;
+		}
+		if (v0New.x > animateLength)
 		{
 			v0New.x = v0New.x - animateLength;
 		}
-		while (v3New.x > animateLength)
+		if (v3New.x > animateLength)
 		{
 			v3New.x = v3New.x - animateLength;
 		}
@@ -117,7 +121,13 @@ void BsplineCurveEvaluator::evaluateCurve(const std::vector<Point>& ptvCtrlPts,
 			Point dupPt(xNew, yNew);
 			ptvCtrlPtsNew.push_back(dupPt);
 		}
-		
+		for (int i = 0; i < 2; i++)
+		{
+			float xNew = ptvCtrlPtsNew[i].x + 2*fAniLength;
+			float yNew = ptvCtrlPtsNew[i].y;
+			Point dupPt(xNew, yNew);
+			ptvCtrlPtsNew.push_back(dupPt);
+		}
 		
 	}
 
