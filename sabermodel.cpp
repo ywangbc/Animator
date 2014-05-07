@@ -1,5 +1,23 @@
 #include "sabermodel.h"
 
+Mat4f getModelViewMatrix(){
+	GLfloat m[16];
+	glGetFloatv(GL_MODELVIEW_MATRIX, m);
+	Mat4f matMV(m[0], m[1], m[2], m[3],
+		m[4], m[5], m[6], m[7],
+		m[8], m[9], m[10], m[11],
+		m[12], m[13], m[14], m[15]);
+	return matMV.transpose(); // because the matrix GL returns is column major
+}
+
+int hairRand(bool resetSign){
+	static int ret = 0;
+	int A = 3, B = 23;
+	if (resetSign)ret = 0;
+	ret = (ret * A + B) % 100;
+	return ret;
+}
+
 void setDiffuseColorAlpha(float r, float g, float b, float alpha)
 {
 	ModelerDrawState *mds = ModelerDrawState::Instance();
@@ -854,7 +872,7 @@ void drawHair(GLdouble mp,GLdouble ep){
 #define LOWER_HEIGHT 0.25
 #define BOTTOM_RADIUS 0.1
 void drawHead(int ty){
-	srand(time(0));
+	hairRand(1);
 	glPushMatrix();
 	if(ty!=COSTUME_SABER_ALTER)setDiffuseColor(USE_COLOR_HAIR_GOLD);
 	else setDiffuseColor(USE_COLOR_HAIR_DARK_GOLD);
@@ -931,8 +949,8 @@ void drawHead(int ty){
 		drawTriangle(uplast[0], 1.0, uplast[1], upthis[0], 1.0, upthis[1], 0.0, 1.0, 0.0);
 
 		if (!(i % 2)){
-			double mp = (double)rand() / RAND_MAX *2.0 - 1.0;
-			double ep = (double)rand() / RAND_MAX *4.0 - 2.0;
+			double mp = (double)hairRand(0) / 100 *2.0 - 1.0;
+			double ep = (double)hairRand(0) / 100 *4.0 - 2.0;
 			if (ty != COSTUME_SABER_ALTER)setDiffuseColor(USE_COLOR_HAIR_GOLD);
 			else setDiffuseColor(USE_COLOR_HAIR_DARK_GOLD);
 			glPushMatrix();
@@ -940,8 +958,8 @@ void drawHead(int ty){
 			glScaled(-0.15, 0.4, 0.0);
 			drawHair(mp, ep);
 			glPopMatrix();
-			mp = (double)rand() / RAND_MAX *2.0 - 1.0;
-			ep = (double)rand() / RAND_MAX *4.0 - 2.0;
+			mp = (double)hairRand(0) / 100 *2.0 - 1.0;
+			ep = (double)hairRand(0) / 100 *4.0 - 2.0;
 			glPushMatrix();
 			glTranslated(-upthis[0], 1.05, upthis[1] + 0.02);
 			glScaled(-0.1, 0.4, 0.1);
@@ -968,8 +986,8 @@ void drawHead(int ty){
 		glRotated(rotY, 0.0, 1.0, 0.0);
 		if(curZ<0.3&&curZ>esp)glScaled(-0.15, 1.2, 0.1);
 		else glScaled(-0.1, 0.7, 0.1);
-		double mp = (double)rand() / RAND_MAX *1.0 - 0.5;
-		double ep = (double)rand() / RAND_MAX *2.0 - 1.0;
+		double mp = (double)hairRand(0) / 100 *1.0 - 0.5;
+		double ep = (double)hairRand(0) / 100 *2.0 - 1.0;
 		drawHair(mp, ep);
 		glPopMatrix();
 	}
@@ -985,8 +1003,8 @@ void drawHead(int ty){
 		glRotated(curAngle*180.0 / 3.14159, 0.0, 1.0, 0.0);
 		glRotated(105.0, 1.0, 0.0, 0.0);
 		glScaled(0.1, 1.2, 0.1);
-		double mp = (double)rand() / RAND_MAX *1.0 - 0.5;
-		double ep = (double)rand() / RAND_MAX *2.0 - 1.0;
+		double mp = (double)hairRand(0) / 100 *1.0 - 0.5;
+		double ep = (double)hairRand(0) / 100 *2.0 - 1.0;
 		drawHair(mp, ep);
 		glPopMatrix();
 	}
@@ -1029,8 +1047,8 @@ void drawHead(int ty){
 	//VERY IMPORTANT!
 	if (ty != COSTUME_SABER_ALTER){
 		setDiffuseColor(USE_COLOR_HAIR_GOLD);
-		double mp = (double)rand() / RAND_MAX *1.0 - 0.5;
-		double ep = (double)rand() / RAND_MAX *2.0 - 1.0;
+		double mp = (double)hairRand(0) / 100 *1.0 - 0.5;
+		double ep = (double)hairRand(0) / 100 *2.0 - 1.0;
 		glPushMatrix();
 		glTranslated(0.0, 1.01, 0.8);
 		glRotated(120, 0.0, 0.0, 1.0);
@@ -1149,7 +1167,7 @@ void ModelNode::disableTexture(){
 	texAvailable = false;
 }
 
-void ModelNode::Render(){
+void ModelNode::Render(Mat4f& camera){
 	if (disabled)return;
 	setAmbientColor(.1f, .1f, .1f);
 	if (abs(colorAlpha - 1.0) < esp){
@@ -1239,13 +1257,21 @@ void ModelNode::Render(){
 	glPopMatrix();
 	//recursive draw children
 	for (ModelNode* mn = childHead; mn; mn = mn->brotherNext){
-		mn->Render();
+		mn->Render(camera);
 	}
 	glPopMatrix();
 }
 
 
 
+void ModelNode::RootRender(Mat4f& camera){
+	camera = getModelViewMatrix();
+	Render(camera);
+
+	//Ground particles
+	addGroundParticle(camera);
+	
+}
 
 
 //Manually initialize tree nodes
@@ -1287,7 +1313,6 @@ void SaberModel::InitializeTree(){
 	lowerOuter[5].nodeCreate(&lowerTorso, SHAPE_PARTIAL_CYLINDER);
 	treeRoot = &upperTorso;
 
-	
 }
 
 void SaberModel::CostumeSaber(){
@@ -1386,7 +1411,7 @@ void SaberModel::CostumeSaber(){
 	excaliburGrip.setTrans(0.0, 0.0, 0.0);
 	excaliburGrip.cylinderScale(0.8, 0.5, 0.5);
 
-	head.setAngle(0.0, 215.0, 0.0);
+	head.setAngle(0.0, 180.0, 0.0);
 	head.setColor(USE_COLOR_BODY);
 	head.setScale(0.8, 1.4, 0.8);
 	head.setStartPos(0.0, 0.0, 0.0);
@@ -1828,4 +1853,44 @@ void SaberModel::RotateExcalibur(GLdouble X, GLdouble Y, GLdouble Z, char theRot
 
 void SaberModel::setExcaliburTransparency(GLdouble alpha){
 	excaliburBlade.setColorAlpha(1.0f, 1.0f, 1.0f, alpha);
+}
+
+void SaberModel::RotateHead(GLdouble X, GLdouble Y, GLdouble Z, char theRotateOrder[]){
+	head.setAngle(X, Y, Z, theRotateOrder);
+}
+
+
+void Particle::render(){
+	switch (type){
+	case GROUND:
+		setDiffuseColor(USE_COLOR_GOLD);
+		glPushMatrix();
+		glTranslated(position[0], position[1], position[2]);
+		drawSphere(size);
+		glPopMatrix();
+		break;
+	}
+}
+
+void ModelNode::addGroundParticle(Mat4f& camera){
+	if (VAL(PARTICLE_GROUND)){
+		ParticleSystem *ps = ModelerApplication::Instance()->GetParticleSystem();
+		double xp, zp;
+		xp = (rand() % 100 - 50) / 50.0 * GroundSize;
+		zp = (rand() % 100 - 50) / 50.0 * GroundSize;
+		if (ps->isSimulate())ps->addParticle(Vec3f(xp, -10, zp), Vec3f(0, 0, 0), 0.1, 10, rand() % 100 / 100.0 * 0.02 + 0.03 ,GROUND);
+	}
+}
+
+void SaberModel::InitializeParticleSystem(){
+	ParticleSystem *ps = new ParticleSystem;
+
+	Force *f = new Gravity(GROUND, -0.2, -0.1);
+	ps->addForce(f);
+	f = new Wind(GROUND, 0, Vec3f(1, 0, 0), 1.0, Vec3f(1, 0, 0));
+	ps->addForce(f);
+	f = new Wind(GROUND, 0, Vec3f(1, 0, 0), 1.0, Vec3f(0, 0, 1));
+	ps->addForce(f);
+
+	ModelerApplication::Instance()->SetParticleSystem(ps);
 }

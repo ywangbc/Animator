@@ -244,6 +244,7 @@ void ModelerUI::cb_aniLen(Fl_Menu_* o, void* v)
 inline void ModelerUI::cb_fps_i(Fl_Slider*, void*) 
 {
 	fps(m_psldrFPS->value());
+	ModelerApplication::Instance()->GetParticleSystem()->stopSimulation(ModelerApplication::Instance()->GetTime());
 }
 
 void ModelerUI::cb_fps(Fl_Slider* o, void* v) 

@@ -1,9 +1,12 @@
 // The sample model.  You should build a file
 // very similar to this for when you make your model.
+
 #include "modelerview.h"
 #include "modelerapp.h"
 #include "modelerdraw.h"
 #include "bitmap.h"
+#include "mat.h"
+#include "particleSystem.h"
 #include <FL/gl.h>
 #include <GL/glu.h>
 #include <cmath>
@@ -76,6 +79,16 @@ enum{
 	SLASH_TYPE_NUM
 };
 
+enum SaberModelControls
+{
+	XPOS = 0, YPOS, ZPOS, SWORD_TRANSPARENCY,
+	ROTATE, SLASH, COSTUME, SLASH_TYPE, NECK, 
+	PARTICLE_GROUND, PARTICLE_PREPARE, PARTICLE_CAST, PARTICLE_BURST, PARTICLE_AIR,
+	NUMCONTROLS
+};
+
+#define VAL(x) (ModelerApplication::Instance()->GetControlValue(x))
+
 const GLdouble LOWER_ARM_SLASH=0.8;
 
 class ModelNode{
@@ -108,9 +121,11 @@ public:
 	void setStartAndEndAngle(GLdouble theStartAngle, GLdouble theEndAngle);
 	void enableNode();
 	void disableNode();
-	void Render();
+	void Render(Mat4f& camera);
+	void RootRender(Mat4f &camera);
 	void enableTexture();
 	void disableTexture();
+	static void addGroundParticle(Mat4f& camera);
 };
 
 // To make a SaberModel, we inherit off of ModelerView
@@ -135,7 +150,9 @@ public:
 	void RotateRightUpperArm(GLdouble X, GLdouble Y, GLdouble Z, char theRotateOrder[] = "xyz");
 	void RotateRightLowerArm(GLdouble X, GLdouble Y, GLdouble Z, char theRotateOrder[] = "xyz");
 	void RotateExcalibur(GLdouble X, GLdouble Y, GLdouble Z, char theRotateOrder[] = "xyz");
+	void RotateHead(GLdouble X, GLdouble Y, GLdouble Z, char theRotateOrder[] = "xyz");
 	void setExcaliburTransparency(GLdouble alpha);
+	static void InitializeParticleSystem();
 private:
 	ModelNode *treeRoot;
 	ModelNode upperTorso, lowerTorso, leftUpperArm, leftLowerArm, rightUpperArm, rightLowerArm;
@@ -144,4 +161,9 @@ private:
 	ModelNode lowerArmor[6],lowerFront[2],lowerOuter[6];
 	ModelNode leftFoot, rightFoot;
 	ModelNode leftHand, rightHand;
+	Mat4f cameraMatrix;
 };
+
+Mat4f getModelViewMatrix();
+
+const float GroundSize = 10.0;
