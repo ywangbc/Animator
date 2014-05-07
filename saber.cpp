@@ -1,13 +1,7 @@
 #include "sabermodel.h"
 
 
-enum SaberModelControls
-{
-	XPOS = 0, YPOS, ZPOS, SWORD_TRANSPARENCY,
-	ROTATE, SLASH, COSTUME, SLASH_TYPE, NUMCONTROLS
-};
 
-#define VAL(x) (ModelerApplication::Instance()->GetControlValue(x))
 
 // We need to make a creator function, mostly because of
 // nasty API stuff that we'd rather stay away from.
@@ -24,7 +18,7 @@ void SaberModel::draw()
 	// matrix stuff.  Unless you want to fudge directly with the 
 	// projection matrix, don't bother with this ...
 
-		ModelerView::draw();
+	ModelerView::draw();
 
 
 	glEnable(GL_BLEND);
@@ -34,14 +28,15 @@ void SaberModel::draw()
 
 	
 		LocateBody(VAL(XPOS), VAL(YPOS), VAL(ZPOS), VAL(ROTATE));
+		RotateHead(0, VAL(NECK) + 180, 0);
 		int SType = VAL(SLASH_TYPE);
 		switch (SType){
 		case VERTICAL:
-			RotateExcalibur(0.0, 90.0, LOWER_ARM_SLASH*VAL(SLASH) < 40.0 ? LOWER_ARM_SLASH*VAL(SLASH) : 40.0, "yzx");
+			RotateExcalibur(0.0, 90.0, 2*LOWER_ARM_SLASH*VAL(SLASH) < 40.0 ? 2*LOWER_ARM_SLASH*VAL(SLASH) : 40.0, "yzx");
 			RotateRightUpperArm(1.5*VAL(SLASH), 0.0, 0.0);
-			RotateRightLowerArm(LOWER_ARM_SLASH*VAL(SLASH), 0.0, LOWER_ARM_SLASH*VAL(SLASH) < 40.0 ? -LOWER_ARM_SLASH*VAL(SLASH) : -40.0, "zxy");
+			RotateRightLowerArm(LOWER_ARM_SLASH*VAL(SLASH), 0.0, 2*LOWER_ARM_SLASH*VAL(SLASH) < 40.0 ? -2*LOWER_ARM_SLASH*VAL(SLASH) : -40.0, "zxy");
 			RotateLeftUpperArm(1.5*VAL(SLASH), 0.0, 0.0);
-			RotateLeftLowerArm(LOWER_ARM_SLASH*VAL(SLASH), 0.0, LOWER_ARM_SLASH*VAL(SLASH) < 40.0 ? LOWER_ARM_SLASH*VAL(SLASH) : 40.0, "zxy");
+			RotateLeftLowerArm(LOWER_ARM_SLASH*VAL(SLASH), 0.0, 2*LOWER_ARM_SLASH*VAL(SLASH) < 40.0 ? 2*LOWER_ARM_SLASH*VAL(SLASH) : 40.0, "zxy");
 			break;
 		case STAND:
 			RotateExcalibur(VAL(SLASH)>75?-VAL(SLASH)*2+25:-VAL(SLASH)*125.0/75.0, 0.0,VAL(SLASH) < 40.0 ? VAL(SLASH) : 40.0 , "xyz");
@@ -81,8 +76,9 @@ void SaberModel::draw()
 		}
 		
 		
-	treeRoot->Render();
+	treeRoot->RootRender(cameraMatrix);
 
+	endDraw();
 }
 
 int main()
@@ -99,6 +95,16 @@ int main()
 	controls[SLASH] = ModelerControl("Slash", 0, 90, 1, 0);
 	controls[COSTUME] = ModelerControl("Costume", 1, 3, 1, 1);
 	controls[SLASH_TYPE] = ModelerControl("Slash Type", 1, SLASH_TYPE_NUM-1, 1, 1);
+	controls[NECK] = ModelerControl("Head direction", -180, 180, 1, 0);
+	controls[PARTICLE_GROUND] = ModelerControl("Ground particle enable", 0, 1, 1, 0);
+	controls[PARTICLE_PREPARE] = ModelerControl("Excalibur prepare enable", 0, 1, 1, 0);
+	controls[PARTICLE_CAST] = ModelerControl("Excalibur enable", 0, 1, 1, 0);
+	controls[PARTICLE_BURST] = ModelerControl("Burst particle enable", 0, 1, 1, 0);
+	controls[PARTICLE_AIR] = ModelerControl("Invisible air enable", 0, 1, 1, 0);
+
+	srand(time(0));
+
+	SaberModel::InitializeParticleSystem();
 
 	ModelerApplication::Instance()->Init(&createSaberModel, controls, NUMCONTROLS);
 	return ModelerApplication::Instance()->Run();

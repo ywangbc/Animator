@@ -49,7 +49,7 @@ void IndicatorWindow::draw()
 		fl_color(0, 255, 0);
 	int x = toWindowX(m_fFloatingIndicator);
 	fl_line(x, 0, x, h());
-
+	
 }
 
 int IndicatorWindow::handle(int iEvent)

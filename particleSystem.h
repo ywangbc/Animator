@@ -17,6 +17,71 @@
 #define __PARTICLE_SYSTEM_H__
 
 #include "vec.h"
+#include "mat.h"
+#include<vector>
+#include<map>
+#include<algorithm>
+
+enum ParticleType {
+	NOTHING = 0,
+	GROUND,
+	BURST,
+	INVISIBLE_AIR,
+	EXCALIBUR_PREPARE,
+	EXCALIBUR_CAST,
+	PARTICLE_TYPES
+};
+
+class Particle{
+public:
+	Particle();
+	Particle(Vec3f POSITION, Vec3f VELOCITY, Vec3f FORCE, float MASS, float AGE_LIMIT, float SIZE, ParticleType TYPE);
+	~Particle();
+	void render();
+	Vec3f getAccel();
+	void clearForce();
+	Vec3f position, velocity;
+	Vec3f force;
+	float mass;
+	float age;
+	float ageLimit;
+	float size;
+	ParticleType type;
+};
+
+class Force{
+public:
+	Force(){}
+	~Force(){}
+	virtual void applyForce(vector<Particle>::iterator start, vector<Particle>::iterator end) = 0;
+	ParticleType getType(){ return effectType; }
+protected:
+	ParticleType effectType;
+};
+
+class Gravity : public Force{
+public:
+	Gravity(); 
+	Gravity(ParticleType e, float grav, float ran = 0.0);
+	~Gravity();
+	virtual void applyForce(vector<Particle>::iterator start, vector<Particle>::iterator end);
+protected:
+	float g;//gravity accleration
+	float r;//random quantity to make behavior of particles different
+};
+
+class Wind : public Force{
+public:
+	Wind();
+	Wind(ParticleType e, float intensity, Vec3f direction ,float ran = 0.0, Vec3f ranDirection = Vec3f(0,0,0));
+	~Wind();
+	virtual void applyForce(vector<Particle>::iterator start, vector<Particle>::iterator end);
+protected:
+	float intensity;
+	float r;
+	Vec3f direction;
+	Vec3f ranDirection;
+};
 
 
 
@@ -62,7 +127,13 @@ public:
 	// of baked particles (without leaking memory).
 	virtual void clearBaked();	
 
-
+	void addForce(Force* f);
+	void zeroAllParticleForces();
+	void applyAllForces();
+	void clearAllParticles();
+	void clearAgedParticles();
+	void addParticle(Vec3f POSITION, Vec3f VELOCITY, float MASS, float AGE_LIMIT, float SIZE, ParticleType t);
+	void setBakeFps(int fps);
 
 	// These accessor fxns are implemented for you
 	float getBakeStartTime() { return bake_start_time; }
@@ -72,7 +143,7 @@ public:
 	bool isDirty() { return dirty; }
 	void setDirty(bool d) { dirty = d; }
 
-
+	static bool pred(Particle& p);
 
 protected:
 	
@@ -89,6 +160,9 @@ protected:
 	bool simulate;						// flag for simulation mode
 	bool dirty;							// flag for updating ui (don't worry about this)
 
+	map<ParticleType,vector<Particle>> particles;
+	map<int, vector<Particle>> bakeBuffer;
+	vector<Force*> allForces;
 };
 
 
