@@ -89,6 +89,93 @@ void Wind::applyForce(vector<Particle>::iterator start, vector<Particle>::iterat
 	}
 }
 
+/***************
+* Drag
+***************/
+
+Drag::Drag(){
+	effectType = NOTHING;
+	intensity = 0;
+}
+Drag::Drag(ParticleType e, float inten){
+	effectType = e;
+	intensity = inten;
+}
+Drag::~Drag(){
+
+}
+void Drag::applyForce(vector<Particle>::iterator start, vector<Particle>::iterator end){
+	vector<Particle>::iterator p;
+	for (p = start; p != end; p++){
+		if (p->type == effectType){
+			p->force += p->velocity * -intensity;
+		}
+	}
+}
+
+/***************
+* Storm
+***************/
+Storm::Storm(){
+	effectType = NOTHING;
+	axis[0] = Vec3f(0, 0, 0);
+	axis[1] = Vec3f(0, 1, 0);
+	axisIntensity = 0;
+	radius[0] = radius[1] = 1.0;
+	r = 0.0;
+}
+Storm::Storm(ParticleType e, Vec3f axisStart, Vec3f axisEnd, float alongAxis, float radiusStart, float radiusEnd, float ran)
+{
+	effectType = e;
+	axis[0] = axisStart;
+	axis[1] = axisEnd;
+	axisIntensity = alongAxis;
+	radius[0] = radiusStart;
+	radius[1] = radiusEnd;
+	r = ran;
+}
+Storm::~Storm(){
+
+}
+void Storm::applyForce(vector<Particle>::iterator start, vector<Particle>::iterator end){
+	vector<Particle>::iterator p;
+	for (p = start; p != end; p++){
+		if (p->type == effectType){
+			forceParticle(*p);
+		}
+	}
+}
+
+void Storm::forceParticle(Particle& p){
+	float len,axisLen;
+	Vec3f centri,along,tanV;
+	Vec3f axisDir;
+	float desireRadius;
+	Vec3f accel;
+	axisDir = axis[1] - axis[0];
+	axisLen = axisDir.length();
+	if (axisDir.length()>1e-6)axisDir.normalize();
+	along = ((p.position-axis[0])*axisDir) * axisDir;
+	len = along.length();
+	if (axisDir * along < 0){
+		len = -len;
+	}
+	desireRadius = (len / axisLen) * (radius[1] - radius[0]) + radius[0];
+	if (desireRadius < 1e-6)desireRadius = 0.1;
+	centri = along - (p.position-axis[0]);
+	if (centri.length()>1e-6)centri.normalize();
+	if (along.length()>1e-6)along.normalize();
+	tanV = p.velocity - (p.velocity * along) * along;
+	if(centri.length()>1e-6)accel = (tanV.length2() / desireRadius) * centri;
+	p.force += accel * p.mass;
+	p.force += axisDir * axisIntensity;
+}
+	
+void Storm::changeAxis(Vec3f axisStart, Vec3f axisEnd){
+	axis[0] = axisStart;
+	axis[1] = axisEnd;
+}
+
 
 
 /***************

@@ -1167,7 +1167,7 @@ void ModelNode::disableTexture(){
 	texAvailable = false;
 }
 
-void ModelNode::Render(Mat4f& camera){
+void ModelNode::Render(){
 	if (disabled)return;
 	setAmbientColor(.1f, .1f, .1f);
 	if (abs(colorAlpha - 1.0) < esp){
@@ -1225,6 +1225,9 @@ void ModelNode::Render(Mat4f& camera){
 		drawTorsoHalfLinear(abs(yScale), 1.0, upperScale, middleScale, middleRatio,0.1);
 		break;
 	case SHAPE_BLADE:
+		//particle
+		addInvisibleAir();
+
 		glTranslated(transX, transY, transZ);
 		glScaled(xScale, yScale, zScale);
 		drawBlade(swordType);
@@ -1257,22 +1260,25 @@ void ModelNode::Render(Mat4f& camera){
 	glPopMatrix();
 	//recursive draw children
 	for (ModelNode* mn = childHead; mn; mn = mn->brotherNext){
-		mn->Render(camera);
+		mn->Render();
 	}
 	glPopMatrix();
 }
 
 
 
-void ModelNode::RootRender(Mat4f& camera){
-	camera = getModelViewMatrix();
-	Render(camera);
+void ModelNode::RootRender(){
+	cameraMatrix = getModelViewMatrix();
+	Render();
 
 	//Ground particles
-	addGroundParticle(camera);
+	addGroundParticle();
 	
 }
 
+AxisForce* ModelNode::invisibleAirStorm = NULL;
+
+Mat4f ModelNode::cameraMatrix;
 
 //Manually initialize tree nodes
 void SaberModel::InitializeTree(){
@@ -1869,27 +1875,82 @@ void Particle::render(){
 		drawSphere(size);
 		glPopMatrix();
 		break;
+	case INVISIBLE_AIR:
+		setDiffuseColor(USE_COLOR_WHITE);
+		glPushMatrix();
+		glTranslated(position[0], position[1], position[2]);
+		drawSphere(size);
+		glPopMatrix();
 	}
 }
 
-void ModelNode::addGroundParticle(Mat4f& camera){
+void ModelNode::addGroundParticle(){
 	if (VAL(PARTICLE_GROUND)){
 		ParticleSystem *ps = ModelerApplication::Instance()->GetParticleSystem();
 		double xp, zp;
 		xp = (rand() % 100 - 50) / 50.0 * GroundSize;
 		zp = (rand() % 100 - 50) / 50.0 * GroundSize;
-		if (ps->isSimulate())ps->addParticle(Vec3f(xp, -10, zp), Vec3f(0, 0, 0), 0.1, 10, rand() % 100 / 100.0 * 0.02 + 0.03 ,GROUND);
+		if (ps->isSimulate())ps->addParticle(Vec3f(xp, -10, zp), Vec3f(0, 0, 0), 0.1, 10, rand() % 100 / 100.0 * 0.01 + 0.04 ,GROUND);
+	}
+}
+
+void ModelNode::modifyAxis(AxisForce* f, Vec3f AxisStart, Vec3f AxisEnd){
+	Mat4f curM = getModelViewMatrix();
+	Mat4f modelM = cameraMatrix.inverse() * curM;
+	AxisStart = modelM * AxisStart;
+	AxisEnd = modelM * AxisEnd;
+	f->changeAxis(AxisStart, AxisEnd);
+}
+
+void ModelNode::addInvisibleAir(){
+	if (VAL(PARTICLE_AIR)){
+		double xp, zp;
+		double ang =  (rand() % 50 )/ 180.0 * 3.1415926;
+		
+		double desireRadius;
+		
+		for (int i = 0; i < 10; i++){
+			desireRadius = i / 10.0 * (INVISIBLE_END_RADIUS - INVISIBLE_START_RADIUS) + INVISIBLE_START_RADIUS;
+			xp = cos(ang) * desireRadius;
+			zp = sin(ang) * desireRadius;
+			spawnParticle(Vec3f(xp, -i / 2.0, zp), Vec3f(3 * zp, 0, -xp * 3), 1.0, 100, 0.02, INVISIBLE_AIR);
+		}
+
+		//Update axis
+		modifyAxis(invisibleAirStorm,Vec3f(0,0,0),Vec3f(0,-5,0));
+	}
+}
+
+void ModelNode::spawnParticle(Vec3f POSITION, Vec3f VELOCITY, float MASS, float AGE_LIMIT, float SIZE, ParticleType t){
+	Mat4f curM = getModelViewMatrix();
+	Mat4f modelM = cameraMatrix.inverse() * curM;
+	POSITION = modelM * POSITION;
+	VELOCITY = modelM * VELOCITY - modelM * Vec3f(0,0,0);
+
+	static bool first = true;
+
+	ParticleSystem *ps = ModelerApplication::Instance()->GetParticleSystem();
+	if (ps->isSimulate()){
+		if(first)ps->addParticle(POSITION, VELOCITY, MASS, AGE_LIMIT, SIZE, t);
+		//if (first)first = false;
 	}
 }
 
 void SaberModel::InitializeParticleSystem(){
 	ParticleSystem *ps = new ParticleSystem;
 
-	Force *f = new Gravity(GROUND, -0.2, -0.1);
+	Force *f = new Gravity(GROUND, -0.5, -0.2);
 	ps->addForce(f);
 	f = new Wind(GROUND, 0, Vec3f(1, 0, 0), 1.0, Vec3f(1, 0, 0));
 	ps->addForce(f);
 	f = new Wind(GROUND, 0, Vec3f(1, 0, 0), 1.0, Vec3f(0, 0, 1));
+	ps->addForce(f);
+	f = new Drag(GROUND, 0.01);
+	ps->addForce(f);
+	f = new Storm(INVISIBLE_AIR, Vec3f(0, 0, 0), Vec3f(1, 0, 0), 0.1, INVISIBLE_START_RADIUS, INVISIBLE_END_RADIUS, 0.0);
+	ps->addForce(f);
+	ModelNode::invisibleAirStorm = (AxisForce*)f;
+	f = new Drag(INVISIBLE_AIR, 0.05);
 	ps->addForce(f);
 
 	ModelerApplication::Instance()->SetParticleSystem(ps);

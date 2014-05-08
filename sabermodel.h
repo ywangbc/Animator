@@ -91,6 +91,8 @@ enum SaberModelControls
 
 const GLdouble LOWER_ARM_SLASH=0.8;
 
+const float INVISIBLE_START_RADIUS = 0.3, INVISIBLE_END_RADIUS = 1.5;
+
 class ModelNode{
 private:
 	ModelNode *childHead, *brotherNext;
@@ -121,11 +123,16 @@ public:
 	void setStartAndEndAngle(GLdouble theStartAngle, GLdouble theEndAngle);
 	void enableNode();
 	void disableNode();
-	void Render(Mat4f& camera);
-	void RootRender(Mat4f &camera);
+	void Render();
+	void RootRender();
 	void enableTexture();
 	void disableTexture();
-	static void addGroundParticle(Mat4f& camera);
+	static void addGroundParticle();
+	static void addInvisibleAir();
+	static AxisForce* invisibleAirStorm;
+	static void spawnParticle(Vec3f POSITION, Vec3f VELOCITY, float MASS, float AGE_LIMIT, float SIZE, ParticleType t);
+	static Mat4f cameraMatrix;
+	static void modifyAxis(AxisForce* f, Vec3f AxisStart, Vec3f AxisEnd);
 };
 
 // To make a SaberModel, we inherit off of ModelerView
@@ -161,7 +168,6 @@ private:
 	ModelNode lowerArmor[6],lowerFront[2],lowerOuter[6];
 	ModelNode leftFoot, rightFoot;
 	ModelNode leftHand, rightHand;
-	Mat4f cameraMatrix;
 };
 
 Mat4f getModelViewMatrix();

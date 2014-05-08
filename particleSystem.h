@@ -83,6 +83,38 @@ protected:
 	Vec3f ranDirection;
 };
 
+class Drag : public Force{
+public:
+	Drag();
+	Drag(ParticleType e, float intensity);
+	~Drag();
+	virtual void applyForce(vector<Particle>::iterator start, vector<Particle>::iterator end);
+protected:
+	float intensity;
+};
+
+class AxisForce : public Force{
+public:
+	AxisForce(){}
+	~AxisForce(){}
+	virtual void changeAxis(Vec3f axisStart, Vec3f axisEnd) = 0;
+};
+
+class Storm : public AxisForce{
+public:
+	Storm();
+	Storm(ParticleType e, Vec3f axisStart, Vec3f axisEnd, float alongAxis, float radiusStart, float radiusEnd, float ran = 0.0);
+	~Storm();
+	virtual void applyForce(vector<Particle>::iterator start, vector<Particle>::iterator end);
+	virtual void changeAxis(Vec3f axisStart, Vec3f axisEnd);
+protected:
+	Vec3f axis[2];
+	float axisIntensity;
+	float radius[2];
+	float r;
+	void forceParticle(Particle& p);
+};
+
 
 
 class ParticleSystem {
@@ -145,6 +177,8 @@ public:
 
 	static bool pred(Particle& p);
 
+	vector<Force*> allForces;
+
 protected:
 	
 
@@ -162,7 +196,6 @@ protected:
 
 	map<ParticleType,vector<Particle>> particles;
 	map<int, vector<Particle>> bakeBuffer;
-	vector<Force*> allForces;
 };
 
 

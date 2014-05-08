@@ -76,7 +76,7 @@ void SaberModel::draw()
 		}
 		
 		
-	treeRoot->RootRender(cameraMatrix);
+	treeRoot->RootRender();
 
 	endDraw();
 }
@@ -104,8 +104,10 @@ int main()
 
 	srand(time(0));
 
-	SaberModel::InitializeParticleSystem();
 
 	ModelerApplication::Instance()->Init(&createSaberModel, controls, NUMCONTROLS);
+
+	SaberModel::InitializeParticleSystem();
+
 	return ModelerApplication::Instance()->Run();
 }
