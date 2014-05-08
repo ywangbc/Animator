@@ -1246,7 +1246,7 @@ void ModelNode::Render(){
 			addInvisibleAir(120+delta);
 			addInvisibleAir(240+delta);
 			addInvisibleAir(0+delta);
-			delta+=rand()%10;
+			delta+=5;
 		}
 
 		glTranslated(transX, transY, transZ);
@@ -1933,10 +1933,10 @@ void Particle::render(){
 		}
 	case INVISIBLE_AIR:
 		if (VAL(PARTICLE_AIR) > 1 - 1e-6){
-			setDiffuseColorAlpha(USE_COLOR_WHITE,0.5);
+			setDiffuseColorAlpha(USE_COLOR_WHITE,0.8);
 			glPushMatrix();
 			glTranslated(position[0], position[1], position[2]);
-			billBoard(size*(0.5 + age*0.5 / ageLimit),velocity);
+			billBoard(size,velocity);
 			glPopMatrix();
 		}
 	}
@@ -2003,10 +2003,10 @@ void SaberModel::InitializeParticleSystem(){
 	ps->addForce(f);
 	f = new Drag(GROUND, 0.05, 0.005);
 	ps->addForce(f);
-	f = new Storm(INVISIBLE_AIR, Vec3f(0, 0, 0), Vec3f(1, 0, 0), -0.2, INVISIBLE_START_RADIUS, INVISIBLE_END_RADIUS, 0.0);
+	f = new Storm(INVISIBLE_AIR, Vec3f(0, 0, 0), Vec3f(1, 0, 0), 0.4, INVISIBLE_START_RADIUS, INVISIBLE_END_RADIUS, 0.0);
 	ps->addForce(f);
 	ModelNode::invisibleAirStorm = (AxisForce*)f;
-	f = new Drag(INVISIBLE_AIR, 0.1, 0.01);
+	f = new Drag(INVISIBLE_AIR, 0.01, 0.01);
 	ps->addForce(f);
 
 	ModelerApplication::Instance()->SetParticleSystem(ps);

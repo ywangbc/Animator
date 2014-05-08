@@ -110,7 +110,7 @@ void Drag::applyForce(vector<Particle>::iterator start, vector<Particle>::iterat
 	vector<Particle>::iterator p;
 	for (p = start; p != end; p++){
 		if (p->type == effectType){
-			p->force += p->velocity * -intensity + p->velocity * (p->velocity.length()) * quadIntensity;
+			p->force += p->velocity * -intensity + -p->velocity * (p->velocity.length()) * quadIntensity;
 		}
 	}
 }
@@ -176,7 +176,7 @@ void Storm::forceParticle(Particle& p){
 	if(cl<2*desireRadius)p.force += accel * p.mass;
 	else p.force += centri * p.mass * cl * 5;
 	if (behind)p.force += axisDir * -len * 5;
-	else p.force += axisDir * axisIntensity;
+	else if (len < axisLen * 1.2)p.force += axisDir * axisIntensity;
 	tanV.normalize();
 }
 	
