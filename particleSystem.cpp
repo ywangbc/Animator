@@ -96,10 +96,12 @@ void Wind::applyForce(vector<Particle>::iterator start, vector<Particle>::iterat
 Drag::Drag(){
 	effectType = NOTHING;
 	intensity = 0;
+	quadIntensity = 0;
 }
-Drag::Drag(ParticleType e, float inten){
+Drag::Drag(ParticleType e, float inten, float qinten){
 	effectType = e;
 	intensity = inten;
+	quadIntensity = qinten;
 }
 Drag::~Drag(){
 
@@ -108,7 +110,7 @@ void Drag::applyForce(vector<Particle>::iterator start, vector<Particle>::iterat
 	vector<Particle>::iterator p;
 	for (p = start; p != end; p++){
 		if (p->type == effectType){
-			p->force += p->velocity * -intensity;
+			p->force += p->velocity * -intensity + p->velocity * (p->velocity.length()) * quadIntensity;
 		}
 	}
 }
@@ -152,6 +154,7 @@ void Storm::forceParticle(Particle& p){
 	Vec3f axisDir;
 	float desireRadius;
 	Vec3f accel;
+	bool behind = false;
 	axisDir = axis[1] - axis[0];
 	axisLen = axisDir.length();
 	if (axisDir.length()>1e-6)axisDir.normalize();
@@ -159,16 +162,22 @@ void Storm::forceParticle(Particle& p){
 	len = along.length();
 	if (axisDir * along < 0){
 		len = -len;
+		behind = true;
 	}
 	desireRadius = (len / axisLen) * (radius[1] - radius[0]) + radius[0];
-	if (desireRadius < 1e-6)desireRadius = 0.1;
+	if (desireRadius < min(radius[0], radius[1]))desireRadius = min(radius[0], radius[1]);
+	else if (desireRadius > max(radius[0], radius[1]))desireRadius = max(radius[0], radius[1]);
 	centri = along - (p.position-axis[0]);
+	float cl = centri.length();
 	if (centri.length()>1e-6)centri.normalize();
 	if (along.length()>1e-6)along.normalize();
 	tanV = p.velocity - (p.velocity * along) * along;
 	if(centri.length()>1e-6)accel = (tanV.length2() / desireRadius) * centri;
-	p.force += accel * p.mass;
-	p.force += axisDir * axisIntensity;
+	if(cl<2*desireRadius)p.force += accel * p.mass;
+	else p.force += centri * p.mass * cl * 5;
+	if (behind)p.force += axisDir * -len * 5;
+	else p.force += axisDir * axisIntensity;
+	tanV.normalize();
 }
 	
 void Storm::changeAxis(Vec3f axisStart, Vec3f axisEnd){
@@ -263,19 +272,21 @@ void ParticleSystem::resetSimulation(float t)
 /** Compute forces and update particles **/
 void ParticleSystem::computeForcesAndUpdateParticles(float t)
 {
-	clearAgedParticles();
-	zeroAllParticleForces();
-	applyAllForces();
-	map<ParticleType, vector<Particle>>::iterator mit;
-	vector<Particle>::iterator vit;
-	float time_delta = 0.025;
-	for (int i = 1; i < int(PARTICLE_TYPES); i++){
-		mit = particles.find(ParticleType(i));
-		if (mit != particles.end()){
-			for (vit = mit->second.begin(); vit != mit->second.end(); vit++){
-				vit->position += vit->velocity * time_delta;
-				vit->velocity += vit->getAccel() * time_delta;
-				vit->age += time_delta;
+	for (int i = 0; i < 10; i++){
+		clearAgedParticles();
+		zeroAllParticleForces();
+		applyAllForces();
+		map<ParticleType, vector<Particle>>::iterator mit;
+		vector<Particle>::iterator vit;
+		float time_delta = 0.0025;
+		for (int i = 1; i < int(PARTICLE_TYPES); i++){
+			mit = particles.find(ParticleType(i));
+			if (mit != particles.end()){
+				for (vit = mit->second.begin(); vit != mit->second.end(); vit++){
+					vit->position += vit->velocity * time_delta;
+					vit->velocity += vit->getAccel() * time_delta;
+					vit->age += time_delta;
+				}
 			}
 		}
 	}

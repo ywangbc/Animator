@@ -91,7 +91,7 @@ enum SaberModelControls
 
 const GLdouble LOWER_ARM_SLASH=0.8;
 
-const float INVISIBLE_START_RADIUS = 0.3, INVISIBLE_END_RADIUS = 1.5;
+const float INVISIBLE_START_RADIUS = 0.4, INVISIBLE_END_RADIUS = 1.5;
 
 class ModelNode{
 private:
@@ -128,7 +128,7 @@ public:
 	void enableTexture();
 	void disableTexture();
 	static void addGroundParticle();
-	static void addInvisibleAir();
+	static void addInvisibleAir(int deg);
 	static AxisForce* invisibleAirStorm;
 	static void spawnParticle(Vec3f POSITION, Vec3f VELOCITY, float MASS, float AGE_LIMIT, float SIZE, ParticleType t);
 	static Mat4f cameraMatrix;
@@ -144,6 +144,7 @@ public:
 		{
 		InitializeTree();
 		CostumeSaber();
+		instance = this;
 	}
 	void InitializeTree();
 	void CostumeSaber();
@@ -160,6 +161,7 @@ public:
 	void RotateHead(GLdouble X, GLdouble Y, GLdouble Z, char theRotateOrder[] = "xyz");
 	void setExcaliburTransparency(GLdouble alpha);
 	static void InitializeParticleSystem();
+	static SaberModel* instance;
 private:
 	ModelNode *treeRoot;
 	ModelNode upperTorso, lowerTorso, leftUpperArm, leftLowerArm, rightUpperArm, rightLowerArm;

@@ -438,7 +438,7 @@ void drawPartialCylinder(GLdouble h, GLdouble r1, GLdouble r2, GLdouble startAng
 
 }
 
-static GLuint texName;
+static GLuint texName,texWind;
 void TextureInit(){
 	
 	int width, height;
@@ -446,6 +446,21 @@ void TextureInit(){
 
 	glGenTextures(1, &texName);
 	glBindTexture(GL_TEXTURE_2D, texName);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+		GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+		GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width,
+		height, 0, GL_RGB, GL_UNSIGNED_BYTE,
+		data);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+
+	data = readBMP("windtex.bmp", width, height);
+
+	glGenTextures(1, &texWind);
+	glBindTexture(GL_TEXTURE_2D, texWind);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
@@ -1226,11 +1241,17 @@ void ModelNode::Render(){
 		break;
 	case SHAPE_BLADE:
 		//particle
-		addInvisibleAir();
+		if (VAL(PARTICLE_AIR) > 1 - 1e-6){
+			static int delta = 0;
+			addInvisibleAir(120+delta);
+			addInvisibleAir(240+delta);
+			addInvisibleAir(0+delta);
+			delta+=rand()%10;
+		}
 
 		glTranslated(transX, transY, transZ);
 		glScaled(xScale, yScale, zScale);
-		drawBlade(swordType);
+		if (VAL(PARTICLE_AIR) < 1 - 1e-6)drawBlade(swordType);
 		break;
 	case SHAPE_PARTIAL_CYLINDER:
 		glRotated(90.0, 1.0, 0.0, 0.0);
@@ -1254,7 +1275,7 @@ void ModelNode::Render(){
 	case SHAPE_GUARD:
 		glTranslated(transX, transY, transZ);
 		glScaled(xScale, yScale, zScale);
-		drawSwordGuard();
+		if (VAL(PARTICLE_AIR) < 1 - 1e-6)drawSwordGuard();
 		break;
 	}
 	glPopMatrix();
@@ -1280,6 +1301,7 @@ AxisForce* ModelNode::invisibleAirStorm = NULL;
 
 Mat4f ModelNode::cameraMatrix;
 
+SaberModel* SaberModel::instance = NULL;
 //Manually initialize tree nodes
 void SaberModel::InitializeTree(){
 	upperTorso.nodeCreate(NULL, SHAPE_TORSO_HALF_LINEAR);
@@ -1865,32 +1887,68 @@ void SaberModel::RotateHead(GLdouble X, GLdouble Y, GLdouble Z, char theRotateOr
 	head.setAngle(X, Y, Z, theRotateOrder);
 }
 
+void billBoard(float size, Vec3f v){
+	Mat4f ca = getModelViewMatrix();
+	Vec3f cX = ca.inverse()*Vec3f(1, 0, 0) - ca.inverse()*Vec3f(0,0,0);
+	cX.normalize();
+	Vec3f cY = ca.inverse()*Vec3f(0, 1, 0) - ca.inverse()*Vec3f(0, 0, 0);
+	cY.normalize();
+	Vec3f cZ = ca.inverse()*Vec3f(0, 0, 1) - ca.inverse()*Vec3f(0, 0, 0);
+	cZ.normalize();
+	v = v - (v * cZ) *cZ;
+	float len = v.length() ;
+	v.normalize();
+	Vec3f vY;
+	vY = Vec3f(v[1] * cZ[2] - v[2] * cZ[1], v[2] * cZ[0] - v[0] * cZ[2], v[0] * cZ[1] - v[1] * cZ[0]);
+	v *= size ;
+	vY *= size;
+	Vec3f ld, lu, rd, ru;
+	ld = -v - vY;
+	rd = v - vY;
+	lu = -v + vY;
+	ru = v + vY;
+
+	if (!texWind)TextureInit();
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, texWind);
+
+	drawTriangle(ld[0], ld[1], ld[2], rd[0], rd[1], rd[2], lu[0], lu[1], lu[2]);
+	drawTriangle(rd[0], rd[1], rd[2], ru[0], ru[1], ru[2], lu[0], lu[1], lu[2]);
+	drawTriangle(ld[0], ld[1], ld[2], lu[0], lu[1], lu[2], rd[0], rd[1], rd[2]);
+	drawTriangle(rd[0], rd[1], rd[2], lu[0], lu[1], lu[2], ru[0], ru[1], ru[2]);
+
+	glDisable(GL_TEXTURE_2D);
+}
 
 void Particle::render(){
 	switch (type){
 	case GROUND:
-		setDiffuseColor(USE_COLOR_GOLD);
-		glPushMatrix();
-		glTranslated(position[0], position[1], position[2]);
-		drawSphere(size);
-		glPopMatrix();
-		break;
+		if (VAL(PARTICLE_GROUND)>1-1e-6){
+			setDiffuseColor(USE_COLOR_GOLD);
+			glPushMatrix();
+			glTranslated(position[0], position[1], position[2]);
+			drawSphere(size*(1 - age*0.5 / ageLimit));
+			glPopMatrix();
+			break;
+		}
 	case INVISIBLE_AIR:
-		setDiffuseColor(USE_COLOR_WHITE);
-		glPushMatrix();
-		glTranslated(position[0], position[1], position[2]);
-		drawSphere(size);
-		glPopMatrix();
+		if (VAL(PARTICLE_AIR) > 1 - 1e-6){
+			setDiffuseColorAlpha(USE_COLOR_WHITE,0.5);
+			glPushMatrix();
+			glTranslated(position[0], position[1], position[2]);
+			billBoard(size*(0.5 + age*0.5 / ageLimit),velocity);
+			glPopMatrix();
+		}
 	}
 }
 
 void ModelNode::addGroundParticle(){
-	if (VAL(PARTICLE_GROUND)){
+	if (VAL(PARTICLE_GROUND)>1-1e-6){
 		ParticleSystem *ps = ModelerApplication::Instance()->GetParticleSystem();
 		double xp, zp;
 		xp = (rand() % 100 - 50) / 50.0 * GroundSize;
 		zp = (rand() % 100 - 50) / 50.0 * GroundSize;
-		if (ps->isSimulate())ps->addParticle(Vec3f(xp, -10, zp), Vec3f(0, 0, 0), 0.1, 10, rand() % 100 / 100.0 * 0.01 + 0.04 ,GROUND);
+		if (ps->isSimulate())ps->addParticle(Vec3f(xp, -8, zp), Vec3f(0, 0, 0), 0.1, 15, 0.08 ,GROUND);
 	}
 }
 
@@ -1902,18 +1960,18 @@ void ModelNode::modifyAxis(AxisForce* f, Vec3f AxisStart, Vec3f AxisEnd){
 	f->changeAxis(AxisStart, AxisEnd);
 }
 
-void ModelNode::addInvisibleAir(){
-	if (VAL(PARTICLE_AIR)){
+void ModelNode::addInvisibleAir(int deg){
+	if (VAL(PARTICLE_AIR) > 1-1e-6){
 		double xp, zp;
-		double ang =  (rand() % 50 )/ 180.0 * 3.1415926;
+		double ang =  (deg) / 180.0 * 3.1415926;
 		
 		double desireRadius;
 		
-		for (int i = 0; i < 10; i++){
+		for (int i = 0; i < 1; i++){
 			desireRadius = i / 10.0 * (INVISIBLE_END_RADIUS - INVISIBLE_START_RADIUS) + INVISIBLE_START_RADIUS;
 			xp = cos(ang) * desireRadius;
 			zp = sin(ang) * desireRadius;
-			spawnParticle(Vec3f(xp, -i / 2.0, zp), Vec3f(3 * zp, 0, -xp * 3), 1.0, 100, 0.02, INVISIBLE_AIR);
+			spawnParticle(Vec3f(xp, i / 2.0, zp), Vec3f(8*zp, -2, -xp*8), 1.0, 3, 0.05, INVISIBLE_AIR);
 		}
 
 		//Update axis
@@ -1927,30 +1985,28 @@ void ModelNode::spawnParticle(Vec3f POSITION, Vec3f VELOCITY, float MASS, float 
 	POSITION = modelM * POSITION;
 	VELOCITY = modelM * VELOCITY - modelM * Vec3f(0,0,0);
 
-	static bool first = true;
 
 	ParticleSystem *ps = ModelerApplication::Instance()->GetParticleSystem();
 	if (ps->isSimulate()){
-		if(first)ps->addParticle(POSITION, VELOCITY, MASS, AGE_LIMIT, SIZE, t);
-		//if (first)first = false;
+		ps->addParticle(POSITION, VELOCITY, MASS, AGE_LIMIT, SIZE, t);
 	}
 }
 
 void SaberModel::InitializeParticleSystem(){
 	ParticleSystem *ps = new ParticleSystem;
 
-	Force *f = new Gravity(GROUND, -0.5, -0.2);
+	Force *f = new Gravity(GROUND, -2, -1);
 	ps->addForce(f);
 	f = new Wind(GROUND, 0, Vec3f(1, 0, 0), 1.0, Vec3f(1, 0, 0));
 	ps->addForce(f);
 	f = new Wind(GROUND, 0, Vec3f(1, 0, 0), 1.0, Vec3f(0, 0, 1));
 	ps->addForce(f);
-	f = new Drag(GROUND, 0.01);
+	f = new Drag(GROUND, 0.05, 0.005);
 	ps->addForce(f);
-	f = new Storm(INVISIBLE_AIR, Vec3f(0, 0, 0), Vec3f(1, 0, 0), 0.1, INVISIBLE_START_RADIUS, INVISIBLE_END_RADIUS, 0.0);
+	f = new Storm(INVISIBLE_AIR, Vec3f(0, 0, 0), Vec3f(1, 0, 0), -0.2, INVISIBLE_START_RADIUS, INVISIBLE_END_RADIUS, 0.0);
 	ps->addForce(f);
 	ModelNode::invisibleAirStorm = (AxisForce*)f;
-	f = new Drag(INVISIBLE_AIR, 0.05);
+	f = new Drag(INVISIBLE_AIR, 0.1, 0.01);
 	ps->addForce(f);
 
 	ModelerApplication::Instance()->SetParticleSystem(ps);

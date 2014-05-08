@@ -92,7 +92,7 @@ int main()
 	controls[ZPOS] = ModelerControl("Z Position", -5, 5, 0.1f, 0);
 	controls[SWORD_TRANSPARENCY] = ModelerControl("SwordTransparency", 0.0, 1.0, 0.1f, 1);
 	controls[ROTATE] = ModelerControl("Rotate", -180, 180, 1, 0);
-	controls[SLASH] = ModelerControl("Slash", 0, 90, 1, 0);
+	controls[SLASH] = ModelerControl("Slash", 0, 90, 1, 45);
 	controls[COSTUME] = ModelerControl("Costume", 1, 3, 1, 1);
 	controls[SLASH_TYPE] = ModelerControl("Slash Type", 1, SLASH_TYPE_NUM-1, 1, 1);
 	controls[NECK] = ModelerControl("Head direction", -180, 180, 1, 0);
@@ -100,7 +100,7 @@ int main()
 	controls[PARTICLE_PREPARE] = ModelerControl("Excalibur prepare enable", 0, 1, 1, 0);
 	controls[PARTICLE_CAST] = ModelerControl("Excalibur enable", 0, 1, 1, 0);
 	controls[PARTICLE_BURST] = ModelerControl("Burst particle enable", 0, 1, 1, 0);
-	controls[PARTICLE_AIR] = ModelerControl("Invisible air enable", 0, 1, 1, 0);
+	controls[PARTICLE_AIR] = ModelerControl("Invisible air enable", 0, 1, 1, 1);
 
 	srand(time(0));
 

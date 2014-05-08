@@ -86,11 +86,12 @@ protected:
 class Drag : public Force{
 public:
 	Drag();
-	Drag(ParticleType e, float intensity);
+	Drag(ParticleType e, float intensity,float quadIntensity);
 	~Drag();
 	virtual void applyForce(vector<Particle>::iterator start, vector<Particle>::iterator end);
 protected:
 	float intensity;
+	float quadIntensity;
 };
 
 class AxisForce : public Force{
