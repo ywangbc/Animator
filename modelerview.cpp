@@ -119,11 +119,7 @@ void ModelerView::draw()
     glLightfv( GL_LIGHT1, GL_DIFFUSE, lightDiffuse1 );
 
 	// If particle system exists, draw it
-	ParticleSystem *ps = ModelerApplication::Instance()->GetParticleSystem();
-	if (ps != NULL) {
-		ps->computeForcesAndUpdateParticles(t);
-		ps->drawParticles(t);
-	}
+	
 }
 
 
