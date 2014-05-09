@@ -438,7 +438,7 @@ void drawPartialCylinder(GLdouble h, GLdouble r1, GLdouble r2, GLdouble startAng
 
 }
 
-static GLuint texName,texWind;
+static GLuint texName,texWind,texWhite,texOrange,texYellow;
 void TextureInit(){
 	
 	int width, height;
@@ -461,6 +461,51 @@ void TextureInit(){
 
 	glGenTextures(1, &texWind);
 	glBindTexture(GL_TEXTURE_2D, texWind);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+		GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+		GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width,
+		height, 0, GL_RGB, GL_UNSIGNED_BYTE,
+		data);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+
+	data = readBMP("white.bmp", width, height);
+
+	glGenTextures(1, &texWhite);
+	glBindTexture(GL_TEXTURE_2D, texWhite);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+		GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+		GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width,
+		height, 0, GL_RGB, GL_UNSIGNED_BYTE,
+		data);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+
+	data = readBMP("orange.bmp", width, height);
+
+	glGenTextures(1, &texOrange);
+	glBindTexture(GL_TEXTURE_2D, texOrange);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+		GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+		GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width,
+		height, 0, GL_RGB, GL_UNSIGNED_BYTE,
+		data);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+
+	data = readBMP("yellow.bmp", width, height);
+
+	glGenTextures(1, &texYellow);
+	glBindTexture(GL_TEXTURE_2D, texYellow);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
@@ -682,6 +727,7 @@ void drawTorus(GLdouble r1, GLdouble r2){
 void drawBlade(int swordType){
 	if(swordType==TYPE_EXCALIBUR_MORGAN)setDiffuseColor(USE_COLOR_DARK);
 	else setDiffuseColor(USE_COLOR_EXCALIBUR);
+	glPushMatrix();
 	glScaled(1.0/13.5, 1.0 / 320.0, 1.0);
 	//Blade top:(0,320,0)
 	//First part:blade
@@ -709,6 +755,7 @@ void drawBlade(int swordType){
 	drawTriangle(4.0, 275.0, -1.0, 9.0, 300.0, 0.0, 13.5, 23.0, 0.0);
 	drawTriangle(4.0, 275.0, -1.0, 13.5, 23.0, 0.0, 8.0, 37.0, -1.0);
 	drawTriangle(8.0, 37.0, -1.0, 13.5, 23.0, 0.0, 8.0, 18.0, -1.0);
+
 	//Second part:spine
 	switch (swordType){
 	case TYPE_EXCALIBUR:
@@ -803,6 +850,63 @@ void drawBlade(int swordType){
 
 	drawTriangle(8.0, 18.0, -1.0, 13.5, 23.0, 0.0, 13.5, 0.0, 0.0);
 	drawTriangle(8.0, 18.0, -1.0, 13.5, 0.0, 0.0, 8.0, 0.0, -1.0);
+
+	glPopMatrix();
+
+}
+
+void drawBladeTexture(int swordType){
+		setDiffuseColorAlpha(0, 0, 0, 0.8 * VAL(PARTICLE_PREPARE));
+		if (!texYellow)TextureInit();
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, texYellow);
+		glPushMatrix();
+	glScaled(1.01 / 13.5, 1.0 / 320.0, 1.01);
+	//Blade top:(0,320,0)
+	//First part:blade
+	//Left upper
+	drawTriangle(0.0, 280.0, 1.0, 0.0, 320.0, 0.0, -9.0, 300.0, 0.0);
+	drawTriangle(0.0, 280.0, 1.0, -9.0, 300.0, 0.0, -4.0, 275.0, 1.0);
+	drawTriangle(-4.0, 275.0, 1.0, -9.0, 300.0, 0.0, -13.5, 23.0, 0.0);
+	drawTriangle(-4.0, 275.0, 1.0, -13.5, 23.0, 0.0, -8.0, 37.0, 1.0);
+	drawTriangle(-8.0, 37.0, 1.0, -13.5, 23.0, 0.0, -8.0, 18.0, 1.0);
+	//Right upper
+	drawTriangle(0.0, 280.0, 1.0, 9.0, 300.0, 0.0, 0.0, 320.0, 0.0);
+	drawTriangle(0.0, 280.0, 1.0, 4.0, 275.0, 1.0, 9.0, 300.0, 0.0);
+	drawTriangle(4.0, 275.0, 1.0, 13.5, 23.0, 0.0, 9.0, 300.0, 0.0);
+	drawTriangle(4.0, 275.0, 1.0, 8.0, 37.0, 1.0, 13.5, 23.0, 0.0);
+	drawTriangle(8.0, 37.0, 1.0, 8.0, 18.0, 1.0, 13.5, 23.0, 0.0);
+	//Left lower
+	drawTriangle(0.0, 280.0, -1.0, -9.0, 300.0, 0.0, 0.0, 320.0, 0.0);
+	drawTriangle(0.0, 280.0, -1.0, -4.0, 275.0, -1.0, -9.0, 300.0, 0.0);
+	drawTriangle(-4.0, 275.0, -1.0, -13.5, 23.0, 0.0, -9.0, 300.0, 0.0);
+	drawTriangle(-4.0, 275.0, -1.0, -8.0, 37.0, -1.0, -13.5, 23.0, 0.0);
+	drawTriangle(-8.0, 37.0, -1.0, -8.0, 18.0, -1.0, -13.5, 23.0, 0.0);
+	//Right lower
+	drawTriangle(0.0, 280.0, -1.0, 0.0, 320.0, 0.0, 9.0, 300.0, 0.0);
+	drawTriangle(0.0, 280.0, -1.0, 9.0, 300.0, 0.0, 4.0, 275.0, -1.0);
+	drawTriangle(4.0, 275.0, -1.0, 9.0, 300.0, 0.0, 13.5, 23.0, 0.0);
+	drawTriangle(4.0, 275.0, -1.0, 13.5, 23.0, 0.0, 8.0, 37.0, -1.0);
+	drawTriangle(8.0, 37.0, -1.0, 13.5, 23.0, 0.0, 8.0, 18.0, -1.0);
+
+	//Second part:spine
+	//Up
+	drawTriangle(-4.0, 275.0, 1.0, 4.0, 275.0, 1.0, 0.0, 280.0, 1.0);
+	drawTriangle(0.0, 55.0, 1.0, 4.0, 275.0, 1.0, 0.5, 275.0, 1.0);
+	drawTriangle(0.0, 55.0, 1.0, -0.5, 275.0, 1.0, -4.0, 275.0, 1.0);
+	drawTriangle(0.0, 55.0, 1.0, 8.0, 46.0, 1.0, 4.0, 275.0, 1.0);
+	drawTriangle(0.0, 55.0, 1.0, -4.0, 275.0, 1.0, -8.0, 46.0, 1.0);
+	//Down
+	drawTriangle(-4.0, 275.0, -1.0, 0.0, 280.0, -1.0, 4.0, 275.0, -1.0);
+	drawTriangle(0.0, 55.0, -1.0, -4.0, 275.0, -1.0, -0.5, 275.0, -1.0);
+	drawTriangle(0.0, 55.0, -1.0, 0.5, 275.0, -1.0, 4.0, 275.0, -1.0);
+	drawTriangle(0.0, 55.0, -1.0, 4.0, 275.0, -1.0, 8.0, 46.0, -1.0);
+	drawTriangle(0.0, 55.0, -1.0, -8.0, 46.0, -1.0, -4.0, 275.0, -1.0);
+	drawTriangle(0.0, 55.0, 1.0, 0.5, 275.0, 1.0, -0.5, 275.0, 1.0);
+	drawTriangle(0.0, 55.0, -1.0, -0.5, 275.0, -1.0, 0.5, 275.0, -1.0);
+
+	glDisable(GL_TEXTURE_2D);
+	glPopMatrix();
 }
 
 void drawFoot(){
@@ -1267,7 +1371,17 @@ void ModelNode::Render(){
 		glClipPlane(GL_CLIP_PLANE0, eq);
 		glEnable(GL_CLIP_PLANE0);
 
+		if (VAL(PARTICLE_PREPARE) > 1e-6){
+			for (int i = 0; i < 10; i++){
+				float po = rand() % 100 / 100.0;
+				float ao = rand() % 100 / 100.0;
+				spawnParticle(Vec3f(1.1 - po * 0.3, 0.95 *po, po * 0.1), Vec3f(0.0, 0.0, 0.0), 1, ao, 0.03, EXCALIBUR_PREPARE);
+				spawnParticle(Vec3f(-1.1 + po * 0.3, 0.95* po, po * 0.1), Vec3f(0.0, 0.0, 0.0), 1, ao, 0.03, BURST);
+			}
+		}
+
 		drawBlade(swordType);
+		drawBladeTexture(swordType);
 
 		glDisable(GL_CLIP_PLANE0);
 ;
@@ -1956,6 +2070,7 @@ void billBoard(float size, Vec3f v, GLuint texn){
 	glDisable(GL_TEXTURE_2D);
 }
 
+
 void Particle::render(){
 	switch (type){
 	case GROUND:
@@ -1970,6 +2085,18 @@ void Particle::render(){
 		glPushMatrix();
 		glTranslated(position[0], position[1], position[2]);
 		billBoard(size,velocity, texWind);
+		glPopMatrix();
+	case EXCALIBUR_PREPARE:
+		setDiffuseColorAlpha(USE_COLOR_WHITE, 1 - age / ageLimit);
+		glPushMatrix();
+		glTranslated(position[0], position[1], position[2]);
+		billBoard(size, velocity, texOrange);
+		glPopMatrix();
+	case BURST:
+		setDiffuseColorAlpha(USE_COLOR_WHITE, 1 - age / ageLimit);
+		glPushMatrix();
+		glTranslated(position[0], position[1], position[2]);
+		billBoard(size, velocity, texOrange);
 		glPopMatrix();
 	}
 }
@@ -2037,6 +2164,14 @@ void SaberModel::InitializeParticleSystem(){
 	ps->addForce(f);
 	ModelNode::invisibleAirStorm = (AxisForce*)f;
 	f = new Drag(INVISIBLE_AIR, 0.1, 0.02);
+	ps->addForce(f);
+	f = new Gravity(EXCALIBUR_PREPARE, -10, -10);
+	ps->addForce(f);
+	f = new Drag(EXCALIBUR_PREPARE,100, 0.1);
+	ps->addForce(f);
+	f = new Gravity(BURST, 10, 10);
+	ps->addForce(f);
+	f = new Drag(BURST, 100, 0.1);
 	ps->addForce(f);
 
 	ModelerApplication::Instance()->SetParticleSystem(ps);
