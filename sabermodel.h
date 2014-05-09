@@ -93,6 +93,8 @@ const GLdouble LOWER_ARM_SLASH=0.8;
 
 const float INVISIBLE_START_RADIUS = 0.4, INVISIBLE_END_RADIUS = 1.5;
 
+class SaberModel;
+
 class ModelNode{
 private:
 	ModelNode *childHead, *brotherNext;
@@ -108,6 +110,7 @@ private:
 	bool disabled;
 	bool texAvailable;
 	string rotateOrder;
+	double clip;
 public:
 	ModelNode();
 	void nodeCreate(ModelNode *father, int thePrimitiveType);
@@ -121,6 +124,7 @@ public:
 	void setTrans(GLdouble X, GLdouble Y, GLdouble Z);
 	void cylinderScale(GLdouble theUpperScale, GLdouble theMiddleScale, GLdouble theMiddleRatio);
 	void setStartAndEndAngle(GLdouble theStartAngle, GLdouble theEndAngle);
+	void setClip(double c);
 	void enableNode();
 	void disableNode();
 	void Render();
@@ -133,6 +137,7 @@ public:
 	static void spawnParticle(Vec3f POSITION, Vec3f VELOCITY, float MASS, float AGE_LIMIT, float SIZE, ParticleType t);
 	static Mat4f cameraMatrix;
 	static void modifyAxis(AxisForce* f, Vec3f AxisStart, Vec3f AxisEnd);
+	static SaberModel *caller;
 };
 
 // To make a SaberModel, we inherit off of ModelerView

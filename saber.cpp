@@ -77,6 +77,14 @@ void SaberModel::draw()
 		
 		
 	treeRoot->RootRender();
+	
+	if (valid()){
+		ParticleSystem *ps = ModelerApplication::Instance()->GetParticleSystem();
+		if (ps != NULL) {
+			ps->computeForcesAndUpdateParticles(t);
+			ps->drawParticles(t);
+		}
+	}
 
 	endDraw();
 }

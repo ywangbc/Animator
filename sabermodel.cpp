@@ -1103,6 +1103,7 @@ ModelNode::ModelNode(){
 	childHead = brotherNext = NULL;
 	disabled = false;
 	texAvailable = false;
+	clip = 1.0;
 }
 void ModelNode::nodeCreate(ModelNode *father, int thePrimitiveType){
 	primitiveType = thePrimitiveType;
@@ -1162,6 +1163,9 @@ void ModelNode::setHeadType(int ty){
 	headType = ty;
 }
 
+void ModelNode::setClip(double c){
+	clip = c;
+}
 
 void ModelNode::setStartAndEndAngle(GLdouble theStartAngle, GLdouble theEndAngle){
 	startAngle = theStartAngle;
@@ -1183,6 +1187,9 @@ void ModelNode::disableTexture(){
 }
 
 void ModelNode::Render(){
+
+	GLdouble vec[4];
+	GLdouble *eq;
 	if (disabled)return;
 	setAmbientColor(.1f, .1f, .1f);
 	if (abs(colorAlpha - 1.0) < esp){
@@ -1199,59 +1206,71 @@ void ModelNode::Render(){
 		if (rotateOrder[i] == 'z')glRotated(zAngle, 0.0, 0.0, 1.0);
 	}
 	glPushMatrix();
-	switch (primitiveType){
-	case PRIMITIVE_BOX:
-		glTranslated(transX, transY, transZ);
-		drawBox(xScale, yScale, zScale);
-		break;
-	case PRIMITIVE_SPHERE:
+	static int delta = 0;
+	static int tos = 0;
+		switch (primitiveType){
+		case PRIMITIVE_BOX:
+			glTranslated(transX, transY, transZ);
+			drawBox(xScale, yScale, zScale);
+			break;
+		case PRIMITIVE_SPHERE:
+			glTranslated(transX, transY, transZ);
+			glScaled(xScale, yScale, zScale);
+			drawSphere(1.0);
+			break;
+		case PRIMITIVE_CYLINDER:
+			glRotated(90.0, 1.0, 0.0, 0.0);
+			glTranslated(transX, transZ, transY);
+			glScaled(xScale, zScale, yScale / abs(yScale));
+			drawCylinder(abs(yScale), 1.0, upperScale);
+			break;
+		case PRIMITIVE_CYLINDER_NO_DISK:
+			glRotated(90.0, 1.0, 0.0, 0.0);
+			glTranslated(transX, transZ, transY);
+			glScaled(xScale, zScale, yScale / abs(yScale));
+			drawCylinderWithoutDisk(abs(yScale), 1.0, upperScale);
+			break;
+		case SHAPE_TORSO:
+			glRotated(90.0, 1.0, 0.0, 0.0);
+			glTranslated(transX, transZ, transY);
+			glScaled(xScale, zScale, yScale / abs(yScale));
+			drawTorso(abs(yScale), 1.0, upperScale, middleScale, middleRatio);
+			break;
+		case SHAPE_TORSO_LINEAR:
+			glRotated(90.0, 1.0, 0.0, 0.0);
+			glTranslated(transX, transZ, transY);
+			glScaled(xScale, zScale, yScale / abs(yScale));
+			drawTorsoLinear(abs(yScale), 1.0, upperScale, middleScale, middleRatio);
+			break;
+		case SHAPE_TORSO_HALF_LINEAR:
+			glRotated(90.0, 1.0, 0.0, 0.0);
+			glTranslated(transX, transZ, transY);
+			glScaled(xScale, zScale, yScale / abs(yScale));
+			drawTorsoHalfLinear(abs(yScale), 1.0, upperScale, middleScale, middleRatio, 0.1);
+			break;
+		case SHAPE_BLADE:
+			//particle
+			for (int i = 0; i < 4;i++){
+				//if(tos % 60 >= i * 10 && tos % 60 < i * 10 + 10)
+				addInvisibleAir(i * 90 + delta);
+			}
+			delta += 2;
+			//tos++;
 		glTranslated(transX, transY, transZ);
 		glScaled(xScale, yScale, zScale);
-		drawSphere(1.0);
-		break;
-	case PRIMITIVE_CYLINDER:
-		glRotated(90.0, 1.0, 0.0, 0.0);
-		glTranslated(transX, transZ, transY);
-		glScaled(xScale, zScale, yScale / abs(yScale));
-		drawCylinder(abs(yScale), 1.0, upperScale);
-		break;
-	case PRIMITIVE_CYLINDER_NO_DISK:
-		glRotated(90.0, 1.0, 0.0, 0.0);
-		glTranslated(transX, transZ, transY);
-		glScaled(xScale, zScale, yScale/abs(yScale));
-		drawCylinderWithoutDisk(abs(yScale), 1.0, upperScale);
-		break;
-	case SHAPE_TORSO:
-		glRotated(90.0, 1.0, 0.0, 0.0);
-		glTranslated(transX, transZ, transY);
-		glScaled(xScale, zScale, yScale / abs(yScale));
-		drawTorso(abs(yScale),1.0,upperScale,middleScale,middleRatio);
-		break;
-	case SHAPE_TORSO_LINEAR:
-		glRotated(90.0, 1.0, 0.0, 0.0);
-		glTranslated(transX, transZ, transY);
-		glScaled(xScale, zScale, yScale / abs(yScale));
-		drawTorsoLinear(abs(yScale), 1.0, upperScale, middleScale,middleRatio);
-		break;
-	case SHAPE_TORSO_HALF_LINEAR:
-		glRotated(90.0, 1.0, 0.0, 0.0);
-		glTranslated(transX, transZ, transY);
-		glScaled(xScale, zScale, yScale / abs(yScale));
-		drawTorsoHalfLinear(abs(yScale), 1.0, upperScale, middleScale, middleRatio,0.1);
-		break;
-	case SHAPE_BLADE:
-		//particle
-		if (VAL(PARTICLE_AIR) > 1 - 1e-6){
-			static int delta = 0;
-			addInvisibleAir(120+delta);
-			addInvisibleAir(240+delta);
-			addInvisibleAir(0+delta);
-			delta+=rand()%10;
-		}
 
-		glTranslated(transX, transY, transZ);
-		glScaled(xScale, yScale, zScale);
-		if (VAL(PARTICLE_AIR) < 1 - 1e-6)drawBlade(swordType);
+		vec[0] = 0;
+		vec[1] = -1;
+		vec[2] = 0;
+		vec[3] = VAL(SWORD_TRANSPARENCY)*1.1 - 0.1;
+		eq = vec;
+		glClipPlane(GL_CLIP_PLANE0, eq);
+		glEnable(GL_CLIP_PLANE0);
+
+		drawBlade(swordType);
+
+		glDisable(GL_CLIP_PLANE0);
+;
 		break;
 	case SHAPE_PARTIAL_CYLINDER:
 		glRotated(90.0, 1.0, 0.0, 0.0);
@@ -1275,7 +1294,19 @@ void ModelNode::Render(){
 	case SHAPE_GUARD:
 		glTranslated(transX, transY, transZ);
 		glScaled(xScale, yScale, zScale);
-		if (VAL(PARTICLE_AIR) < 1 - 1e-6)drawSwordGuard();
+
+		vec[0] = 0;
+		vec[1] = -1;
+		vec[2] = 0;
+		vec[3] = VAL(SWORD_TRANSPARENCY) * 10 - 0.1;
+		eq = vec;
+		glClipPlane(GL_CLIP_PLANE1, eq);
+		glEnable(GL_CLIP_PLANE1);
+
+		drawSwordGuard();
+
+		glDisable(GL_CLIP_PLANE1);
+
 		break;
 	}
 	glPopMatrix();
@@ -1300,6 +1331,8 @@ void ModelNode::RootRender(){
 AxisForce* ModelNode::invisibleAirStorm = NULL;
 
 Mat4f ModelNode::cameraMatrix;
+
+SaberModel* ModelNode::caller = NULL;
 
 SaberModel* SaberModel::instance = NULL;
 //Manually initialize tree nodes
@@ -1340,6 +1373,8 @@ void SaberModel::InitializeTree(){
 	lowerOuter[4].nodeCreate(&lowerTorso, SHAPE_PARTIAL_CYLINDER);
 	lowerOuter[5].nodeCreate(&lowerTorso, SHAPE_PARTIAL_CYLINDER);
 	treeRoot = &upperTorso;
+
+	ModelNode::caller = this;
 
 }
 
@@ -1880,14 +1915,14 @@ void SaberModel::RotateExcalibur(GLdouble X, GLdouble Y, GLdouble Z, char theRot
 }
 
 void SaberModel::setExcaliburTransparency(GLdouble alpha){
-	excaliburBlade.setColorAlpha(1.0f, 1.0f, 1.0f, alpha);
+	excaliburBlade.setClip(alpha);
 }
 
 void SaberModel::RotateHead(GLdouble X, GLdouble Y, GLdouble Z, char theRotateOrder[]){
 	head.setAngle(X, Y, Z, theRotateOrder);
 }
 
-void billBoard(float size, Vec3f v){
+void billBoard(float size, Vec3f v, GLuint texn){
 	Mat4f ca = getModelViewMatrix();
 	Vec3f cX = ca.inverse()*Vec3f(1, 0, 0) - ca.inverse()*Vec3f(0,0,0);
 	cX.normalize();
@@ -1900,6 +1935,7 @@ void billBoard(float size, Vec3f v){
 	v.normalize();
 	Vec3f vY;
 	vY = Vec3f(v[1] * cZ[2] - v[2] * cZ[1], v[2] * cZ[0] - v[0] * cZ[2], v[0] * cZ[1] - v[1] * cZ[0]);
+
 	v *= size ;
 	vY *= size;
 	Vec3f ld, lu, rd, ru;
@@ -1908,9 +1944,9 @@ void billBoard(float size, Vec3f v){
 	lu = -v + vY;
 	ru = v + vY;
 
-	if (!texWind)TextureInit();
+	if (!texn)TextureInit();
 	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, texWind);
+	glBindTexture(GL_TEXTURE_2D, texn);
 
 	drawTriangle(ld[0], ld[1], ld[2], rd[0], rd[1], rd[2], lu[0], lu[1], lu[2]);
 	drawTriangle(rd[0], rd[1], rd[2], ru[0], ru[1], ru[2], lu[0], lu[1], lu[2]);
@@ -1923,22 +1959,18 @@ void billBoard(float size, Vec3f v){
 void Particle::render(){
 	switch (type){
 	case GROUND:
-		if (VAL(PARTICLE_GROUND)>1-1e-6){
-			setDiffuseColor(USE_COLOR_GOLD);
-			glPushMatrix();
-			glTranslated(position[0], position[1], position[2]);
-			drawSphere(size*(1 - age*0.5 / ageLimit));
-			glPopMatrix();
-			break;
-		}
+		setDiffuseColor(USE_COLOR_GOLD);
+		glPushMatrix();
+		glTranslated(position[0], position[1], position[2]);
+		drawSphere(size*(1 - age*0.5 / ageLimit));
+		glPopMatrix();
+		break;
 	case INVISIBLE_AIR:
-		if (VAL(PARTICLE_AIR) > 1 - 1e-6){
-			setDiffuseColorAlpha(USE_COLOR_WHITE,0.5);
-			glPushMatrix();
-			glTranslated(position[0], position[1], position[2]);
-			billBoard(size*(0.5 + age*0.5 / ageLimit),velocity);
-			glPopMatrix();
-		}
+		setDiffuseColorAlpha(USE_COLOR_WHITE,0.7 - age/ageLimit * 0.7);
+		glPushMatrix();
+		glTranslated(position[0], position[1], position[2]);
+		billBoard(size,velocity, texWind);
+		glPopMatrix();
 	}
 }
 
@@ -1961,7 +1993,6 @@ void ModelNode::modifyAxis(AxisForce* f, Vec3f AxisStart, Vec3f AxisEnd){
 }
 
 void ModelNode::addInvisibleAir(int deg){
-	if (VAL(PARTICLE_AIR) > 1-1e-6){
 		double xp, zp;
 		double ang =  (deg) / 180.0 * 3.1415926;
 		
@@ -1971,12 +2002,11 @@ void ModelNode::addInvisibleAir(int deg){
 			desireRadius = i / 10.0 * (INVISIBLE_END_RADIUS - INVISIBLE_START_RADIUS) + INVISIBLE_START_RADIUS;
 			xp = cos(ang) * desireRadius;
 			zp = sin(ang) * desireRadius;
-			spawnParticle(Vec3f(xp, i / 2.0, zp), Vec3f(8*zp, -2, -xp*8), 1.0, 3, 0.05, INVISIBLE_AIR);
+			if (VAL(PARTICLE_AIR) > 1 - 1e-6)spawnParticle(Vec3f(xp, i / 2.0, zp), Vec3f(8 * zp, -2, -xp * 8), 1.0, 5, 0.05, INVISIBLE_AIR);
 		}
 
 		//Update axis
-		modifyAxis(invisibleAirStorm,Vec3f(0,0,0),Vec3f(0,-5,0));
-	}
+	modifyAxis(invisibleAirStorm,Vec3f(0,0,0),Vec3f(0,-5,0));
 }
 
 void ModelNode::spawnParticle(Vec3f POSITION, Vec3f VELOCITY, float MASS, float AGE_LIMIT, float SIZE, ParticleType t){
@@ -2003,10 +2033,10 @@ void SaberModel::InitializeParticleSystem(){
 	ps->addForce(f);
 	f = new Drag(GROUND, 0.05, 0.005);
 	ps->addForce(f);
-	f = new Storm(INVISIBLE_AIR, Vec3f(0, 0, 0), Vec3f(1, 0, 0), -0.2, INVISIBLE_START_RADIUS, INVISIBLE_END_RADIUS, 0.0);
+	f = new Storm(INVISIBLE_AIR, Vec3f(0, 0, 0), Vec3f(1, 0, 0), 0.4, INVISIBLE_START_RADIUS, INVISIBLE_END_RADIUS, 0.0);
 	ps->addForce(f);
 	ModelNode::invisibleAirStorm = (AxisForce*)f;
-	f = new Drag(INVISIBLE_AIR, 0.1, 0.01);
+	f = new Drag(INVISIBLE_AIR, 0.1, 0.02);
 	ps->addForce(f);
 
 	ModelerApplication::Instance()->SetParticleSystem(ps);
