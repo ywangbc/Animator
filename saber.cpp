@@ -105,8 +105,8 @@ int main()
 	controls[SLASH_TYPE] = ModelerControl("Slash Type", 1, SLASH_TYPE_NUM-1, 1, 1);
 	controls[NECK] = ModelerControl("Head direction", -180, 180, 1, 0);
 	controls[PARTICLE_GROUND] = ModelerControl("Ground particle enable", 0, 1, 1, 0);
-	controls[PARTICLE_PREPARE] = ModelerControl("Excalibur prepare enable", 0, 1, 1, 1);
-	controls[PARTICLE_CAST] = ModelerControl("Excalibur enable", 0, 1, 1, 0);
+	controls[PARTICLE_PREPARE] = ModelerControl("Excalibur prepare enable", 0, 1, 1, 0);
+	controls[PARTICLE_CAST] = ModelerControl("Excalibur enable", 0, 1, 1, 1);
 	controls[PARTICLE_BURST] = ModelerControl("Burst particle enable", 0, 1, 1, 0);
 	controls[PARTICLE_AIR] = ModelerControl("Invisible air enable", 0, 1, 1, 0);
 

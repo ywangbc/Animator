@@ -1375,9 +1375,19 @@ void ModelNode::Render(){
 			for (int i = 0; i < 10; i++){
 				float po = rand() % 100 / 100.0;
 				float ao = rand() % 100 / 100.0;
-				spawnParticle(Vec3f(1.1 - po * 0.3, 0.95 *po, po * 0.1), Vec3f(0.0, 0.0, 0.0), 1, ao, 0.03, EXCALIBUR_PREPARE);
-				spawnParticle(Vec3f(-1.1 + po * 0.3, 0.95* po, po * 0.1), Vec3f(0.0, 0.0, 0.0), 1, ao, 0.03, BURST);
+				spawnParticle(Vec3f(1.1 - po * 0.3, 0.95 *po, 0), Vec3f(0.0, 0.0, 0.0), 1, ao, 0.03, EXCALIBUR_PREPARE);
+				spawnParticle(Vec3f(-1.1 + po * 0.3, 0.95* po, 0), Vec3f(0.0, 0.0, 0.0), 1, ao, 0.03, BURST);
 			}
+		}
+
+		if (VAL(PARTICLE_CAST) > 1 - 1e-6){
+			modifyAxis(excaliburCast, Vec3f(0, 0, 0), Vec3f(0, 1, 0));
+			for (int i = 0; i < 5; i++){
+				float vx = rand() % 100 / 10.0 - 5.0;
+				float vz = rand() % 100 - 50; 
+				spawnParticle(Vec3f(0, 0.8, 0), Vec3f(vx, 0, vz), 1, 2, 0.03, EXCALIBUR_CAST);
+			}
+			spawnParticle(Vec3f(0, 0.8, 0), Vec3f(0, 0, 0), 5, 2, 0.5, EXCALIBUR_CAST);
 		}
 
 		drawBlade(swordType);
@@ -1443,6 +1453,7 @@ void ModelNode::RootRender(){
 }
 
 AxisForce* ModelNode::invisibleAirStorm = NULL;
+AxisForce* ModelNode::excaliburCast = NULL;
 
 Mat4f ModelNode::cameraMatrix;
 
@@ -2098,8 +2109,15 @@ void Particle::render(){
 		glTranslated(position[0], position[1], position[2]);
 		billBoard(size, velocity, texOrange);
 		glPopMatrix();
+	case EXCALIBUR_CAST:
+		setDiffuseColorAlpha(USE_COLOR_WHITE, 0.8);
+		glPushMatrix();
+		glTranslated(position[0], position[1], position[2]);
+		billBoard(size, velocity, texYellow);
+		glPopMatrix();
 	}
 }
+
 
 void ModelNode::addGroundParticle(){
 	if (VAL(PARTICLE_GROUND)>1-1e-6){
@@ -2172,6 +2190,11 @@ void SaberModel::InitializeParticleSystem(){
 	f = new Gravity(BURST, 10, 10);
 	ps->addForce(f);
 	f = new Drag(BURST, 100, 0.1);
+	ps->addForce(f);
+	f = new Storm(EXCALIBUR_CAST, );
+	ps->addForce(f);
+	ModelNode::excaliburCast = (AxisForce*)f;
+	f = new Drag(EXCALIBUR_CAST, 1, 0.01);
 	ps->addForce(f);
 
 	ModelerApplication::Instance()->SetParticleSystem(ps);

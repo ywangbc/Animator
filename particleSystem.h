@@ -29,6 +29,7 @@ enum ParticleType {
 	INVISIBLE_AIR,
 	EXCALIBUR_PREPARE,
 	EXCALIBUR_CAST,
+	EXCALIBUR_CAST_CORE,
 	PARTICLE_TYPES
 };
 
@@ -70,18 +71,6 @@ protected:
 	float r;//random quantity to make behavior of particles different
 };
 
-class Wind : public Force{
-public:
-	Wind();
-	Wind(ParticleType e, float intensity, Vec3f direction ,float ran = 0.0, Vec3f ranDirection = Vec3f(0,0,0));
-	~Wind();
-	virtual void applyForce(vector<Particle>::iterator start, vector<Particle>::iterator end);
-protected:
-	float intensity;
-	float r;
-	Vec3f direction;
-	Vec3f ranDirection;
-};
 
 class Drag : public Force{
 public:
@@ -99,6 +88,20 @@ public:
 	AxisForce(){}
 	~AxisForce(){}
 	virtual void changeAxis(Vec3f axisStart, Vec3f axisEnd) = 0;
+};
+
+class Wind : public AxisForce{
+public:
+	Wind();
+	Wind(ParticleType e, float intensity, Vec3f direction, float ran = 0.0, Vec3f ranDirection = Vec3f(0, 0, 0));
+	~Wind();
+	virtual void applyForce(vector<Particle>::iterator start, vector<Particle>::iterator end);
+	virtual void changeAxis(Vec3f axisStart, Vec3f axisEnd);
+protected:
+	float intensity;
+	float r;
+	Vec3f direction;
+	Vec3f ranDirection;
 };
 
 class Storm : public AxisForce{

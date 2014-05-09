@@ -66,15 +66,16 @@ Wind::Wind(){
 	intensity = 0.0;
 	r = 0.0;
 	direction = Vec3f(1, 0, 0);
+	ranDirection = Vec3f(0, 0, 0);
 }
 Wind::Wind(ParticleType e, float inten, Vec3f direct, float ran, Vec3f ranDirect){
 	effectType = e;
 	intensity = inten;
 	r = ran;
 	direction = direct;
-	direction.normalize();
+	if (direction.length() > 1e-6)direction.normalize();
 	ranDirection = ranDirect;
-	ranDirection.normalize();
+	if(ranDirection.length() > 1e-6)ranDirection.normalize();
 }
 Wind::~Wind(){
 
@@ -83,10 +84,20 @@ void Wind::applyForce(vector<Particle>::iterator start, vector<Particle>::iterat
 	vector<Particle>::iterator p;
 	for (p = start; p != end; p++){
 		float tg;
-		int k = rand() % 100 - 50;
-		tg = (float)k / 100.0 * r;
+		int k;
+		tg = 0.0;
+		if (r > 1e-6){
+			k = rand() % 100 - 50;
+			tg = (float)k / 100.0 * r;
+		}
 		if(p->type == effectType)p->force += direction * intensity + ranDirection * tg;
 	}
+}
+
+void Wind::changeAxis(Vec3f axisStart, Vec3f axisEnd){
+	ranDirection = direction = axisEnd - axisStart;
+	if (direction.length() > 1e-6)direction.normalize();
+	if (ranDirection.length() > 1e-6)ranDirection.normalize();
 }
 
 /***************
@@ -176,8 +187,7 @@ void Storm::forceParticle(Particle& p){
 	if(cl<2*desireRadius)p.force += accel * p.mass;
 	else p.force += centri * p.mass * cl * 5;
 	if (behind)p.force += axisDir * -len * 5;
-	else if (len < axisLen * 1.2)p.force += axisDir * axisIntensity;
-	tanV.normalize();
+	else if (len < axisLen * 1.2)p.force += axisDir * (axisIntensity + r);
 }
 	
 void Storm::changeAxis(Vec3f axisStart, Vec3f axisEnd){

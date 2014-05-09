@@ -134,6 +134,7 @@ public:
 	static void addGroundParticle();
 	static void addInvisibleAir(int deg);
 	static AxisForce* invisibleAirStorm;
+	static AxisForce* excaliburCast;
 	static void spawnParticle(Vec3f POSITION, Vec3f VELOCITY, float MASS, float AGE_LIMIT, float SIZE, ParticleType t);
 	static Mat4f cameraMatrix;
 	static void modifyAxis(AxisForce* f, Vec3f AxisStart, Vec3f AxisEnd);
